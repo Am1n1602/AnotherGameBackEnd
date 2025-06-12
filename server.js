@@ -27,20 +27,22 @@ const entrySchema = new mongoose.Schema({
 const Entry = mongoose.model('Entry', entrySchema);
 
 // Submit a new score
-app.post('/submit-score', async (req, res) => {
-    try {
-        const { name, deaths, time } = req.body;
-        if (!name || deaths === undefined || time === undefined) {
-            return res.status(400).json({ error: 'Invalid data' });
-        }
-
-        const entry = new Entry({ name, deaths, time });
-        await entry.save();
-        res.json({ success: true });
-    } catch (err) {
-        console.error('Error submitting score:', err.message);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+app.post('/submit-score', express.text({ type: '*/*' }), (req, res, next) => {
+  console.log('Raw body:', req.body);
+  try {
+    req.body = JSON.parse(req.body); // Manually parse if needed
+  } catch (e) {
+    return res.status(400).json({ error: 'Invalid JSON' });
+  }
+  next();
+}, async (req, res) => {
+  const { name, deaths, time } = req.body;
+  if (!name || deaths == null || time == null) {
+    return res.status(400).json({ error: 'Invalid data' });
+  }
+  const entry = new Entry({ name, deaths, time });
+  await entry.save();
+  res.json({ success: true });
 });
 
 // Get leaderboard, sorted by time or deaths
