@@ -30,7 +30,8 @@ const Entry = mongoose.model('Entry', entrySchema);
 
 // Submit a new score
 app.post('/submit-score', (req, res, next) => {
-    console.log('Raw body:', req.body);
+    console.log("Headers:", req.headers);    
+    console.log("Raw body:", req.body); 
     try {
         req.body = JSON.parse(req.body);
     } catch (e) {
