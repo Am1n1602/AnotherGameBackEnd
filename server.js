@@ -6,7 +6,9 @@ const cors = require('cors');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+
+// Apply text parser globally, so body is captured as plain text
+app.use(express.text({ type: '*/*' }));
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {
@@ -27,25 +29,25 @@ const entrySchema = new mongoose.Schema({
 const Entry = mongoose.model('Entry', entrySchema);
 
 // Submit a new score
-app.post('/submit-score', express.text({ type: '*/*' }), (req, res, next) => {
-  console.log('Raw body:', req.body);
-  try {
-    req.body = JSON.parse(req.body); // Manually parse if needed
-  } catch (e) {
-    return res.status(400).json({ error: 'Invalid JSON' });
-  }
-  next();
+app.post('/submit-score', (req, res, next) => {
+    console.log('Raw body:', req.body);
+    try {
+        req.body = JSON.parse(req.body);
+    } catch (e) {
+        return res.status(400).json({ error: 'Invalid JSON' });
+    }
+    next();
 }, async (req, res) => {
-  const { name, deaths, time } = req.body;
-  if (!name || deaths == null || time == null) {
-    return res.status(400).json({ error: 'Invalid data' });
-  }
-  const entry = new Entry({ name, deaths, time });
-  await entry.save();
-  res.json({ success: true });
+    const { name, deaths, time } = req.body;
+    if (!name || deaths == null || time == null) {
+        return res.status(400).json({ error: 'Invalid data' });
+    }
+    const entry = new Entry({ name, deaths, time });
+    await entry.save();
+    res.json({ success: true });
 });
 
-// Get leaderboard, sorted by time or deaths
+// Get leaderboard
 app.get('/leaderboard', async (req, res) => {
     try {
         const sortBy = req.query.sortBy === 'deaths' ? 'deaths' : 'time';
