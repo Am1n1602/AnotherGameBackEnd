@@ -1,12 +1,12 @@
 require('dotenv').config();
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json()); // Explicitly use body-parser
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {
@@ -16,7 +16,7 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log('MongoDB connected'))
 .catch((err) => {
     console.error('MongoDB connection error:', err.message);
-    process.exit(1); // Exit if DB fails to connect
+    process.exit(1);
 });
 
 const entrySchema = new mongoose.Schema({
@@ -28,21 +28,21 @@ const Entry = mongoose.model('Entry', entrySchema);
 
 // Submit a new score
 app.post('/submit-score', (req, res) => {
-  console.log("Headers:", req.headers);
-  console.log("Parsed body:", req.body);
+    console.log("Headers:", req.headers);
+    console.log("Parsed body:", req.body);
 
-  const { name, deaths, time } = req.body;
-  if (!name || deaths == null || time == null) {
-    return res.status(400).json({ error: 'Invalid data' });
-  }
+    const { name, deaths, time } = req.body;
+    if (!name || deaths == null || time == null) {
+        return res.status(400).json({ error: 'Invalid data' });
+    }
 
-  const entry = new Entry({ name, deaths, time });
-  entry.save().then(() => {
-    res.json({ success: true });
-  }).catch((err) => {
-    console.error('Mongo save error:', err);
-    res.status(500).json({ error: 'Database error' });
-  });
+    const entry = new Entry({ name, deaths, time });
+    entry.save()
+        .then(() => res.json({ success: true }))
+        .catch((err) => {
+            console.error('Mongo save error:', err);
+            res.status(500).json({ error: 'Database error' });
+        });
 });
 
 // Get leaderboard
