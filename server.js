@@ -53,7 +53,7 @@ app.post('/submit-score', async (req, res) => {
 app.get('/leaderboard', async (req, res) => {
   try {
     const sortBy = req.query.sortBy === 'deaths' ? 'deaths' : 'time';
-    const entries = await Entry.find().sort({ [sortBy]: 1, time: 1 }).limit(100);
+    const entries = await Entry.find().sort({ [sortBy]: 1, time: 1 }).limit(300);
     res.json(entries);
   } catch (err) {
     console.error('Leaderboard error:', err.message);
